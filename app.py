@@ -212,5 +212,106 @@ def players_delete(player_id):
     return redirect(url_for("players_list"))
 
 
+@app.route("/tournaments", methods=["GET"])
+def tournaments_list():
+    conn = get_db()
+    tournaments = conn.execute(
+        """
+        SELECT id, name, level, location, surface
+        FROM tournaments
+        ORDER BY name, id
+        """
+    ).fetchall()
+    conn.close()
+    return render_template("tournaments/list.html", tournaments=tournaments)
+
+
+@app.route("/tournaments/new", methods=["GET"])
+def tournaments_new():
+    return render_template("tournaments/new.html")
+
+
+@app.route("/tournaments", methods=["POST"])
+def tournaments_create():
+    name = request.form.get("name", "").strip()
+    level = request.form.get("level", "").strip() or None
+    location = request.form.get("location", "").strip() or None
+    surface = request.form.get("surface", "").strip() or None
+    if not name:
+        flash("Tournament name is required.", "error")
+        return render_template("tournaments/new.html")
+
+    conn = get_db()
+    conn.execute(
+        """
+        INSERT INTO tournaments (name, level, location, surface)
+        VALUES (?, ?, ?, ?)
+        """,
+        (name, level, location, surface),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Tournament created.", "success")
+    return redirect(url_for("tournaments_list"))
+
+
+@app.route("/tournaments/<int:tournament_id>", methods=["GET"])
+def tournaments_view(tournament_id):
+    conn = get_db()
+    tournament = conn.execute(
+        "SELECT id, name, level, location, surface FROM tournaments WHERE id = ?",
+        (tournament_id,),
+    ).fetchone()
+    conn.close()
+
+    return render_template("tournaments/view.html", tournament=tournament)
+
+
+@app.route("/tournaments/<int:tournament_id>/edit", methods=["GET"])
+def tournaments_edit(tournament_id):
+    conn = get_db()
+    tournament = conn.execute(
+        "SELECT id, name, level, location, surface FROM tournaments WHERE id = ?",
+        (tournament_id,),
+    ).fetchone()
+    conn.close()
+
+    return render_template("tournaments/edit.html", tournament=tournament)
+
+
+@app.route("/tournaments/<int:tournament_id>", methods=["POST"])
+def tournaments_update(tournament_id):
+    name = request.form.get("name", "").strip()
+    level = request.form.get("level", "").strip() or None
+    location = request.form.get("location", "").strip() or None
+    surface = request.form.get("surface", "").strip() or None
+
+    conn = get_db()
+    conn.execute(
+        """
+        UPDATE tournaments
+        SET name = ?, level = ?, location = ?, surface = ?
+        WHERE id = ?
+        """,
+        (name, level, location, surface, tournament_id),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Tournament updated.", "success")
+    return redirect(url_for("tournaments_view", tournament_id=tournament_id))
+
+
+@app.route("/tournaments/<int:tournament_id>/delete", methods=["POST"])
+def tournaments_delete(tournament_id):
+    conn = get_db()
+    conn.execute("DELETE FROM tournaments WHERE id = ?", (tournament_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Tournament deleted.", "success")
+    return redirect(url_for("tournaments_list"))
+
 if __name__ == "__main__":
     app.run(debug=True)

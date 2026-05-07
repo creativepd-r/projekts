@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Tournament {{ tournament.id }} | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Edit Tournament</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('tournaments_view', tournament_id=tournament.id) }}">Back</a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <form method="post" action="{{ url_for('tournaments_update', tournament_id=tournament.id) }}">
+      <label for="name">Name</label>
+      <input id="name" name="name" value="{{ tournament.name }}" />
+
+      <label for="level">Level</label>
+      <input id="level" name="level" value="{{ tournament.level or '' }}" />
+
+      <label for="location">Location</label>
+      <input id="location" name="location" value="{{ tournament.location or '' }}" />
+
+      <label for="surface">Surface</label>
+      <select id="surface" name="surface">
+        <option value="" {% if not tournament.surface %}selected{% endif %}>(unknown)</option>
+        <option value="Hard" {% if tournament.surface == 'Hard' %}selected{% endif %}>Hard</option>
+        <option value="Clay" {% if tournament.surface == 'Clay' %}selected{% endif %}>Clay</option>
+        <option value="Grass" {% if tournament.surface == 'Grass' %}selected{% endif %}>Grass</option>
+        <option value="Carpet" {% if tournament.surface == 'Carpet' %}selected{% endif %}>Carpet</option>
+      </select>
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn-primary" type="submit">Save</button>
+        <a href="{{ url_for('tournaments_view', tournament_id=tournament.id) }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
