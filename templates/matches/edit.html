@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Match {{ match.id }} | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Edit Match #{{ match.id }}</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('matches_view', match_id=match.id) }}">Back</a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <form method="post" action="{{ url_for('matches_update', match_id=match.id) }}">
+      <label for="tournament_id">Tournament</label>
+      <select id="tournament_id" name="tournament_id" required>
+        {% for t in tournaments %}
+          <option value="{{ t.id }}" {% if t.id == match.tournament_id %}selected{% endif %}>{{ t.name }}{% if t.surface %} ({{ t.surface }}){% endif %}</option>
+        {% endfor %}
+      </select>
+
+      <label for="match_date">Date (YYYY-MM-DD)</label>
+      <input id="match_date" name="match_date" value="{{ match.match_date }}" required />
+
+      <label for="round">Round</label>
+      <input id="round" name="round" value="{{ match.round or '' }}" />
+
+      <label for="best_of">Best of</label>
+      <select id="best_of" name="best_of">
+        <option value="3" {% if match.best_of == 3 %}selected{% endif %}>3</option>
+        <option value="5" {% if match.best_of == 5 %}selected{% endif %}>5</option>
+      </select>
+
+      <label for="winner_player_id">Winner</label>
+      <select id="winner_player_id" name="winner_player_id" required>
+        {% for p in players %}
+          <option value="{{ p.id }}" {% if p.id == match.winner_player_id %}selected{% endif %}>{{ p.first_name }} {{ p.last_name }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="loser_player_id">Loser</label>
+      <select id="loser_player_id" name="loser_player_id" required>
+        {% for p in players %}
+          <option value="{{ p.id }}" {% if p.id == match.loser_player_id %}selected{% endif %}>{{ p.first_name }} {{ p.last_name }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="score">Score</label>
+      <input id="score" name="score" value="{{ match.score or '' }}" />
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn-primary" type="submit">Save</button>
+        <a href="{{ url_for('matches_view', match_id=match.id) }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

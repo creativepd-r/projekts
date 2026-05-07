@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Add Match | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Add Match</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('matches_list') }}">Back</a>
+  </div>
+
+  {% if not tournaments or not players %}
+    <div class="card" style="margin-top: 12px;">
+      <p style="margin: 0;">You need at least 1 tournament and 2 players before adding a match.</p>
+      <p style="margin: 8px 0 0;">
+        <a href="{{ url_for('tournaments_new') }}">Add a tournament</a>
+        |
+        <a href="{{ url_for('players_new') }}">Add players</a>
+      </p>
+    </div>
+  {% else %}
+    <div class="card" style="margin-top: 12px;">
+      <form method="post" action="{{ url_for('matches_create') }}">
+        <label for="tournament_id">Tournament</label>
+        <select id="tournament_id" name="tournament_id" required>
+          <option value="" selected disabled>Select...</option>
+          {% for t in tournaments %}
+            <option value="{{ t.id }}">{{ t.name }}{% if t.surface %} ({{ t.surface }}){% endif %}</option>
+          {% endfor %}
+        </select>
+
+        <label for="match_date">Date (YYYY-MM-DD)</label>
+        <input id="match_date" name="match_date" placeholder="2026-05-07" required />
+
+        <label for="round">Round</label>
+        <input id="round" name="round" placeholder="Final, SF, R16..." />
+
+        <label for="best_of">Best of</label>
+        <select id="best_of" name="best_of">
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+        </select>
+
+        <label for="winner_player_id">Winner</label>
+        <select id="winner_player_id" name="winner_player_id" required>
+          <option value="" selected disabled>Select...</option>
+          {% for p in players %}
+            <option value="{{ p.id }}">{{ p.first_name }} {{ p.last_name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="loser_player_id">Loser</label>
+        <select id="loser_player_id" name="loser_player_id" required>
+          <option value="" selected disabled>Select...</option>
+          {% for p in players %}
+            <option value="{{ p.id }}">{{ p.first_name }} {{ p.last_name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="score">Score</label>
+        <input id="score" name="score" placeholder="6-4 3-6 6-1" />
+
+        <div class="row" style="margin-top: 12px;">
+          <button class="btn-primary" type="submit">Create</button>
+          <a href="{{ url_for('matches_list') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

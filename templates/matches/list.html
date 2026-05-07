@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Matches | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Matches</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('matches_new') }}"><button class="btn-primary" type="button">Add Match</button></a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    {% if not matches %}
+      <p class="muted" style="margin: 0;">No matches yet. Add players and a tournament first.</p>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Tournament</th>
+            <th>Winner</th>
+            <th>Loser</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in matches %}
+            <tr>
+              <td>{{ m.match_date }}</td>
+              <td>{{ m.tournament_name }}</td>
+              <td>{{ m.winner_first }} {{ m.winner_last }}</td>
+              <td>{{ m.loser_first }} {{ m.loser_last }}</td>
+              <td>{{ m.score or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+{% endblock %}
