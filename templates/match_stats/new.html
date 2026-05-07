@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Add Match Stats | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Add Match Stats</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('match_stats_list') }}">Back</a>
+  </div>
+
+  {% if not matches or not players %}
+    <div class="card" style="margin-top: 12px;">
+      <p style="margin: 0;">You need at least 1 match and 1 player.</p>
+      <p style="margin: 8px 0 0;">
+        <a href="{{ url_for('matches_new') }}">Add a match</a>
+        |
+        <a href="{{ url_for('players_new') }}">Add players</a>
+      </p>
+    </div>
+  {% else %}
+    <div class="card" style="margin-top: 12px;">
+      <form method="post" action="{{ url_for('match_stats_create') }}">
+        <label for="match_id">Match</label>
+        <select id="match_id" name="match_id" required>
+          <option value="" selected disabled>Select...</option>
+          {% for m in matches %}
+            <option value="{{ m.id }}">#{{ m.id }} | {{ m.match_date }} | {{ m.tournament_name }} | {{ m.winner_last }} def. {{ m.loser_last }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="player_id">Player</label>
+        <select id="player_id" name="player_id" required>
+          <option value="" selected disabled>Select...</option>
+          {% for p in players %}
+            <option value="{{ p.id }}">{{ p.first_name }} {{ p.last_name }}</option>
+          {% endfor %}
+        </select>
+
+        <div class="row">
+          <div>
+            <label for="aces">Aces</label>
+            <input id="aces" name="aces" inputmode="numeric" value="0" />
+          </div>
+          <div>
+            <label for="double_faults">Double faults</label>
+            <input id="double_faults" name="double_faults" inputmode="numeric" value="0" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="first_serve_in">1st serve in</label>
+            <input id="first_serve_in" name="first_serve_in" inputmode="numeric" value="0" />
+          </div>
+          <div>
+            <label for="first_serve_total">1st serve total</label>
+            <input id="first_serve_total" name="first_serve_total" inputmode="numeric" value="0" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="winners">Winners</label>
+            <input id="winners" name="winners" inputmode="numeric" value="0" />
+          </div>
+          <div>
+            <label for="unforced_errors">Unforced errors</label>
+            <input id="unforced_errors" name="unforced_errors" inputmode="numeric" value="0" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="break_points_won">BP won</label>
+            <input id="break_points_won" name="break_points_won" inputmode="numeric" value="0" />
+          </div>
+          <div>
+            <label for="break_points_total">BP total</label>
+            <input id="break_points_total" name="break_points_total" inputmode="numeric" value="0" />
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 12px;">
+          <button class="btn-primary" type="submit">Create</button>
+          <a href="{{ url_for('match_stats_list') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

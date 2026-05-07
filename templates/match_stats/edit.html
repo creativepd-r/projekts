@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Match Stat {{ stat.id }} | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Edit Match Stat #{{ stat.id }}</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('match_stats_view', stat_id=stat.id) }}">Back</a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <p class="muted" style="margin: 0;">This edits only the stat numbers (match/player are fixed).</p>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <form method="post" action="{{ url_for('match_stats_update', stat_id=stat.id) }}">
+      <label for="aces">Aces</label>
+      <input id="aces" name="aces" inputmode="numeric" value="{{ stat.aces }}" />
+
+      <label for="double_faults">Double faults</label>
+      <input id="double_faults" name="double_faults" inputmode="numeric" value="{{ stat.double_faults }}" />
+
+      <label for="first_serve_in">1st serve in</label>
+      <input id="first_serve_in" name="first_serve_in" inputmode="numeric" value="{{ stat.first_serve_in }}" />
+
+      <label for="first_serve_total">1st serve total</label>
+      <input id="first_serve_total" name="first_serve_total" inputmode="numeric" value="{{ stat.first_serve_total }}" />
+
+      <label for="winners">Winners</label>
+      <input id="winners" name="winners" inputmode="numeric" value="{{ stat.winners }}" />
+
+      <label for="unforced_errors">Unforced errors</label>
+      <input id="unforced_errors" name="unforced_errors" inputmode="numeric" value="{{ stat.unforced_errors }}" />
+
+      <label for="break_points_won">Break points won</label>
+      <input id="break_points_won" name="break_points_won" inputmode="numeric" value="{{ stat.break_points_won }}" />
+
+      <label for="break_points_total">Break points total</label>
+      <input id="break_points_total" name="break_points_total" inputmode="numeric" value="{{ stat.break_points_total }}" />
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn-primary" type="submit">Save</button>
+        <a href="{{ url_for('match_stats_view', stat_id=stat.id) }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

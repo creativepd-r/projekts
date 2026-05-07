@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Match Stat {{ stat.id }} | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Match Stat #{{ stat.id }}</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('match_stats_edit', stat_id=stat.id) }}"><button type="button">Edit</button></a>
+    <form class="inline" method="post" action="{{ url_for('match_stats_delete', stat_id=stat.id) }}">
+      <button class="btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <p style="margin: 0;"><strong>Match:</strong> <a href="{{ url_for('matches_view', match_id=stat.match_id) }}">#{{ stat.match_id }}</a> ({{ stat.match_date }} | {{ stat.tournament_name }})</p>
+    <p style="margin: 8px 0 0;"><strong>Player:</strong> {{ stat.first_name }} {{ stat.last_name }}</p>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <table>
+      <tbody>
+        <tr><th>Aces</th><td>{{ stat.aces }}</td></tr>
+        <tr><th>Double faults</th><td>{{ stat.double_faults }}</td></tr>
+        <tr><th>1st serves (in/total)</th><td>{{ stat.first_serve_in }}/{{ stat.first_serve_total }}</td></tr>
+        <tr><th>Winners</th><td>{{ stat.winners }}</td></tr>
+        <tr><th>Unforced errors</th><td>{{ stat.unforced_errors }}</td></tr>
+        <tr><th>Break points (won/total)</th><td>{{ stat.break_points_won }}/{{ stat.break_points_total }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top: 12px;"><a href="{{ url_for('match_stats_list') }}">Back to match stats</a></p>
+{% endblock %}

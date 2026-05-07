@@ -523,6 +523,195 @@ def matches_delete(match_id):
     flash("Match deleted.", "success")
     return redirect(url_for("matches_list"))
 
+
+@app.route("/match-stats", methods=["GET"])
+def match_stats_list():
+    conn = get_db()
+    stats = conn.execute(
+        """
+        SELECT
+            ms.id,
+            ms.match_id,
+            ms.player_id,
+            ms.aces,
+            ms.double_faults,
+            ms.first_serve_in,
+            ms.first_serve_total,
+            ms.winners,
+            ms.unforced_errors,
+            ms.break_points_won,
+            ms.break_points_total,
+            m.match_date,
+            t.name AS tournament_name,
+            p.first_name,
+            p.last_name
+        FROM match_stats ms
+        JOIN matches m ON m.id = ms.match_id
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN players p ON p.id = ms.player_id
+        ORDER BY m.match_date DESC, ms.id DESC
+        """
+    ).fetchall()
+    conn.close()
+    return render_template("match_stats/list.html", stats=stats)
+
+
+@app.route("/match-stats/new", methods=["GET"])
+def match_stats_new():
+    conn = get_db()
+    matches = conn.execute(
+        """
+        SELECT
+            m.id,
+            m.match_date,
+            t.name AS tournament_name,
+            wp.last_name AS winner_last,
+            lp.last_name AS loser_last
+        FROM matches m
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN players wp ON wp.id = m.winner_player_id
+        JOIN players lp ON lp.id = m.loser_player_id
+        ORDER BY m.match_date DESC, m.id DESC
+        """
+    ).fetchall()
+    players = conn.execute(
+        "SELECT id, first_name, last_name FROM players ORDER BY last_name, first_name, id"
+    ).fetchall()
+    conn.close()
+    return render_template("match_stats/new.html", matches=matches, players=players)
+
+
+@app.route("/match-stats", methods=["POST"])
+def match_stats_create():
+    match_id = to_int(request.form.get("match_id", ""), 0)
+    player_id = to_int(request.form.get("player_id", ""), 0)
+    if not match_id or not player_id:
+        flash("Match and player are required.", "error")
+        return redirect(url_for("match_stats_new"))
+
+    conn = get_db()
+    conn.execute(
+        """
+        INSERT INTO match_stats (
+            match_id, player_id,
+            aces, double_faults,
+            first_serve_in, first_serve_total,
+            winners, unforced_errors,
+            break_points_won, break_points_total
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            match_id,
+            player_id,
+            to_int(request.form.get("aces", "0"), 0),
+            to_int(request.form.get("double_faults", "0"), 0),
+            to_int(request.form.get("first_serve_in", "0"), 0),
+            to_int(request.form.get("first_serve_total", "0"), 0),
+            to_int(request.form.get("winners", "0"), 0),
+            to_int(request.form.get("unforced_errors", "0"), 0),
+            to_int(request.form.get("break_points_won", "0"), 0),
+            to_int(request.form.get("break_points_total", "0"), 0),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Match stat created.", "success")
+    return redirect(url_for("match_stats_list"))
+
+
+@app.route("/match-stats/<int:stat_id>", methods=["GET"])
+def match_stats_view(stat_id):
+    conn = get_db()
+    stat = conn.execute(
+        """
+        SELECT
+            ms.id,
+            ms.match_id,
+            ms.player_id,
+            ms.aces,
+            ms.double_faults,
+            ms.first_serve_in,
+            ms.first_serve_total,
+            ms.winners,
+            ms.unforced_errors,
+            ms.break_points_won,
+            ms.break_points_total,
+            m.match_date,
+            t.name AS tournament_name,
+            p.first_name,
+            p.last_name
+        FROM match_stats ms
+        JOIN matches m ON m.id = ms.match_id
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN players p ON p.id = ms.player_id
+        WHERE ms.id = ?
+        """,
+        (stat_id,),
+    ).fetchone()
+    conn.close()
+    return render_template("match_stats/view.html", stat=stat)
+
+
+@app.route("/match-stats/<int:stat_id>/edit", methods=["GET"])
+def match_stats_edit(stat_id):
+    conn = get_db()
+    stat = conn.execute(
+        """
+        SELECT
+            id, match_id, player_id,
+            aces, double_faults, first_serve_in, first_serve_total,
+            winners, unforced_errors, break_points_won, break_points_total
+        FROM match_stats
+        WHERE id = ?
+        """,
+        (stat_id,),
+    ).fetchone()
+    conn.close()
+    return render_template("match_stats/edit.html", stat=stat)
+
+
+@app.route("/match-stats/<int:stat_id>", methods=["POST"])
+def match_stats_update(stat_id):
+    conn = get_db()
+    conn.execute(
+        """
+        UPDATE match_stats
+        SET aces = ?, double_faults = ?, first_serve_in = ?, first_serve_total = ?,
+            winners = ?, unforced_errors = ?, break_points_won = ?, break_points_total = ?
+        WHERE id = ?
+        """,
+        (
+            to_int(request.form.get("aces", "0"), 0),
+            to_int(request.form.get("double_faults", "0"), 0),
+            to_int(request.form.get("first_serve_in", "0"), 0),
+            to_int(request.form.get("first_serve_total", "0"), 0),
+            to_int(request.form.get("winners", "0"), 0),
+            to_int(request.form.get("unforced_errors", "0"), 0),
+            to_int(request.form.get("break_points_won", "0"), 0),
+            to_int(request.form.get("break_points_total", "0"), 0),
+            stat_id,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Match stat updated.", "success")
+    return redirect(url_for("match_stats_view", stat_id=stat_id))
+
+
+@app.route("/match-stats/<int:stat_id>/delete", methods=["POST"])
+def match_stats_delete(stat_id):
+    conn = get_db()
+    conn.execute("DELETE FROM match_stats WHERE id = ?", (stat_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Match stat deleted.", "success")
+    return redirect(url_for("match_stats_list"))
+
+
 @app.errorhandler(404)
 def not_found(_):
     return render_template("404.html"), 404

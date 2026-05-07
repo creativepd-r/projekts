@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Match Stats | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Match Stats</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('match_stats_new') }}"><button class="btn-primary" type="button">Add Match Stats</button></a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    {% if not stats %}
+      <p class="muted" style="margin: 0;">No match stats yet.</p>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Tournament</th>
+            <th>Player</th>
+            <th>A</th>
+            <th>DF</th>
+            <th>1st</th>
+            <th>W</th>
+            <th>UE</th>
+            <th>BP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stats %}
+            <tr>
+              <td>{{ s.match_date }}</td>
+              <td>{{ s.tournament_name }}</td>
+              <td>{{ s.first_name }} {{ s.last_name }}</td>
+              <td>{{ s.aces }}</td>
+              <td>{{ s.double_faults }}</td>
+              <td>{{ s.first_serve_in }}/{{ s.first_serve_total }}</td>
+              <td>{{ s.winners }}</td>
+              <td>{{ s.unforced_errors }}</td>
+              <td>{{ s.break_points_won }}/{{ s.break_points_total }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+{% endblock %}
