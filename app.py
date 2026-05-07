@@ -1,6 +1,6 @@
 import sqlite3
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, abort, redirect, render_template, request, url_for
 from pathlib import Path
 
 
@@ -307,9 +307,26 @@ def tournaments_update(tournament_id):
 @app.route("/tournaments/<int:tournament_id>/delete", methods=["POST"])
 def tournaments_delete(tournament_id):
     conn = get_db()
-    conn.execute("DELETE FROM tournaments WHERE id = ?", (tournament_id,))
+
+    match_count = conn.execute(
+        "SELECT COUNT(*) AS c FROM matches WHERE tournament_id = ?",
+        (tournament_id,),
+    ).fetchone()["c"]
+
+    if int(match_count) > 0:
+        conn.close()
+        flash(
+            "Cannot delete this tournament because it has matches. Delete those matches first.",
+            "error",
+        )
+        return redirect(url_for("tournaments_view", tournament_id=tournament_id))
+
+    cur = conn.execute("DELETE FROM tournaments WHERE id = ?", (tournament_id,))
     conn.commit()
     conn.close()
+
+    if cur.rowcount == 0:
+        abort(404)
 
     flash("Tournament deleted.", "success")
     return redirect(url_for("tournaments_list"))
