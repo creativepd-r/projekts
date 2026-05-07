@@ -18,5 +18,42 @@
     <p style="margin: 8px 0 0;"><strong>Surface:</strong> {{ tournament.surface or "" }}</p>
   </div>
 
+  <h2 style="margin-top: 16px;">Matches</h2>
+  <div class="card">
+    {% if not matches %}
+      <p class="muted" style="margin: 0;">No matches for this tournament.</p>
+      <p style="margin: 8px 0 0;"><a href="{{ url_for('matches_new') }}">Add a match</a></p>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Winner</th>
+            <th>Loser</th>
+            <th>Score</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in matches %}
+            <tr>
+              <td><a href="{{ url_for('matches_view', match_id=m.id) }}">{{ m.id }}</a></td>
+              <td>{{ m.match_date }}</td>
+              <td>{{ m.winner_first }} {{ m.winner_last }}</td>
+              <td>{{ m.loser_first }} {{ m.loser_last }}</td>
+              <td>{{ m.score or "" }}</td>
+              <td>
+                <form class="inline" method="post" action="{{ url_for('matches_delete', match_id=m.id) }}" onsubmit="return confirm('Delete match #{{ m.id }}?');">
+                  <button class="btn-danger" type="submit">Delete Match</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
   <p style="margin-top: 12px;"><a href="{{ url_for('tournaments_list') }}">Back to tournaments</a></p>
 {% endblock %}

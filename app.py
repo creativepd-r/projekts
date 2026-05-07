@@ -1,6 +1,6 @@
 import sqlite3
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
 from pathlib import Path
 
 
@@ -264,9 +264,36 @@ def tournaments_view(tournament_id):
         "SELECT id, name, level, location, surface FROM tournaments WHERE id = ?",
         (tournament_id,),
     ).fetchone()
+    if tournament is None:
+        conn.close()
+        abort(404)
+
+    matches = conn.execute(
+        """
+        SELECT
+            m.id,
+            m.match_date,
+            m.round,
+            m.score,
+            wp.first_name AS winner_first,
+            wp.last_name AS winner_last,
+            lp.first_name AS loser_first,
+            lp.last_name AS loser_last
+        FROM matches m
+        JOIN players wp ON wp.id = m.winner_player_id
+        JOIN players lp ON lp.id = m.loser_player_id
+        WHERE m.tournament_id = ?
+        ORDER BY m.match_date DESC, m.id DESC
+        """,
+        (tournament_id,),
+    ).fetchall()
     conn.close()
 
-    return render_template("tournaments/view.html", tournament=tournament)
+    return render_template(
+        "tournaments/view.html",
+        tournament=tournament,
+        matches=matches,
+    )
 
 
 @app.route("/tournaments/<int:tournament_id>/edit", methods=["GET"])
@@ -517,9 +544,12 @@ def matches_update(match_id):
 @app.route("/matches/<int:match_id>/delete", methods=["POST"])
 def matches_delete(match_id):
     conn = get_db()
-    conn.execute("DELETE FROM matches WHERE id = ?", (match_id,))
+    cur = conn.execute("DELETE FROM matches WHERE id = ?", (match_id,))
     conn.commit()
     conn.close()
+
+    if cur.rowcount == 0:
+        abort(404)
 
     flash("Match deleted.", "success")
     return redirect(url_for("matches_list"))
