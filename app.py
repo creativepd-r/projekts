@@ -1,7 +1,6 @@
-import os
 import sqlite3
 
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from pathlib import Path
 
 
@@ -93,6 +92,8 @@ def to_int(value, default=0):
 
 app = Flask(__name__)
 init_db()
+
+app.config["SECRET_KEY"] = "test"
 
 
 @app.route("/", methods=["GET"])
