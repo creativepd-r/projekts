@@ -39,9 +39,9 @@ CREATE TABLE IF NOT EXISTS matches (
   winner_player_id INTEGER NOT NULL,
   loser_player_id INTEGER NOT NULL,
   score TEXT,
-  FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
-  FOREIGN KEY (winner_player_id) REFERENCES players(id) ON DELETE CASCADE,
-  FOREIGN KEY (loser_player_id) REFERENCES players(id) ON DELETE CASCADE,
+  FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE RESTRICT,
+  FOREIGN KEY (winner_player_id) REFERENCES players(id) ON DELETE RESTRICT,
+  FOREIGN KEY (loser_player_id) REFERENCES players(id) ON DELETE RESTRICT,
   CHECK (winner_player_id != loser_player_id)
 );
 
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS match_stats (
   break_points_won INTEGER NOT NULL DEFAULT 0,
   break_points_total INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
-  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE RESTRICT,
   UNIQUE (match_id, player_id)
 );
 
