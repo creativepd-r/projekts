@@ -313,5 +313,220 @@ def tournaments_delete(tournament_id):
     flash("Tournament deleted.", "success")
     return redirect(url_for("tournaments_list"))
 
+
+@app.route("/matches", methods=["GET"])
+def matches_list():
+    conn = get_db()
+    matches = conn.execute(
+        """
+        SELECT
+            m.id,
+            m.match_date,
+            m.round,
+            m.best_of,
+            m.score,
+            t.name AS tournament_name,
+            wp.first_name AS winner_first,
+            wp.last_name AS winner_last,
+            lp.first_name AS loser_first,
+            lp.last_name AS loser_last
+        FROM matches m
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN players wp ON wp.id = m.winner_player_id
+        JOIN players lp ON lp.id = m.loser_player_id
+        ORDER BY m.match_date DESC, m.id DESC
+        """
+    ).fetchall()
+    conn.close()
+    return render_template("matches/list.html", matches=matches)
+
+
+@app.route("/matches/new", methods=["GET"])
+def matches_new():
+    conn = get_db()
+    tournaments = conn.execute(
+        "SELECT id, name, surface FROM tournaments ORDER BY name, id"
+    ).fetchall()
+    players = conn.execute(
+        "SELECT id, first_name, last_name FROM players ORDER BY last_name, first_name, id"
+    ).fetchall()
+    conn.close()
+    return render_template("matches/new.html", tournaments=tournaments, players=players)
+
+
+@app.route("/matches", methods=["POST"])
+def matches_create():
+    tournament_id = to_int(request.form.get("tournament_id", ""), 0)
+    match_date = request.form.get("match_date", "").strip()
+    round_ = request.form.get("round", "").strip() or None
+    best_of = to_int(request.form.get("best_of", "3"), 3)
+    winner_player_id = to_int(request.form.get("winner_player_id", ""), 0)
+    loser_player_id = to_int(request.form.get("loser_player_id", ""), 0)
+    score = request.form.get("score", "").strip() or None
+
+    if (
+        not tournament_id
+        or not match_date
+        or not winner_player_id
+        or not loser_player_id
+    ):
+        flash("Tournament, date, winner, and loser are required.", "error")
+        return redirect(url_for("matches_new"))
+
+    conn = get_db()
+    conn.execute(
+        """
+        INSERT INTO matches (
+            tournament_id, match_date, round, best_of,
+            winner_player_id, loser_player_id, score
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            tournament_id,
+            match_date,
+            round_,
+            best_of,
+            winner_player_id,
+            loser_player_id,
+            score,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Match created.", "success")
+    return redirect(url_for("matches_list"))
+
+
+@app.route("/matches/<int:match_id>", methods=["GET"])
+def matches_view(match_id):
+    conn = get_db()
+    match = conn.execute(
+        """
+        SELECT
+            m.id,
+            m.match_date,
+            m.round,
+            m.best_of,
+            m.score,
+            t.name AS tournament_name,
+            t.surface AS tournament_surface,
+            wp.first_name AS winner_first,
+            wp.last_name AS winner_last,
+            lp.first_name AS loser_first,
+            lp.last_name AS loser_last
+        FROM matches m
+        JOIN tournaments t ON t.id = m.tournament_id
+        JOIN players wp ON wp.id = m.winner_player_id
+        JOIN players lp ON lp.id = m.loser_player_id
+        WHERE m.id = ?
+        """,
+        (match_id,),
+    ).fetchone()
+    stats = conn.execute(
+        """
+        SELECT
+            ms.id,
+            ms.player_id,
+            p.first_name,
+            p.last_name,
+            ms.aces,
+            ms.double_faults,
+            ms.first_serve_in,
+            ms.first_serve_total,
+            ms.winners,
+            ms.unforced_errors,
+            ms.break_points_won,
+            ms.break_points_total
+        FROM match_stats ms
+        JOIN players p ON p.id = ms.player_id
+        WHERE ms.match_id = ?
+        ORDER BY p.last_name, p.first_name
+        """,
+        (match_id,),
+    ).fetchall()
+    conn.close()
+    return render_template("matches/view.html", match=match, stats=stats)
+
+
+@app.route("/matches/<int:match_id>/edit", methods=["GET"])
+def matches_edit(match_id):
+    conn = get_db()
+    match = conn.execute(
+        """
+        SELECT id, tournament_id, match_date, round, best_of, winner_player_id, loser_player_id, score
+        FROM matches
+        WHERE id = ?
+        """,
+        (match_id,),
+    ).fetchone()
+    tournaments = conn.execute(
+        "SELECT id, name, surface FROM tournaments ORDER BY name, id"
+    ).fetchall()
+    players = conn.execute(
+        "SELECT id, first_name, last_name FROM players ORDER BY last_name, first_name, id"
+    ).fetchall()
+    conn.close()
+
+    return render_template(
+        "matches/edit.html",
+        match=match,
+        tournaments=tournaments,
+        players=players,
+    )
+
+
+@app.route("/matches/<int:match_id>", methods=["POST"])
+def matches_update(match_id):
+    tournament_id = to_int(request.form.get("tournament_id", ""), 0)
+    match_date = request.form.get("match_date", "").strip()
+    round_ = request.form.get("round", "").strip() or None
+    best_of = to_int(request.form.get("best_of", ""), 3)
+    winner_player_id = to_int(request.form.get("winner_player_id", ""), 0)
+    loser_player_id = to_int(request.form.get("loser_player_id", ""), 0)
+    score = request.form.get("score", "").strip() or None
+
+    conn = get_db()
+    conn.execute(
+        """
+        UPDATE matches
+        SET tournament_id = ?, match_date = ?, round = ?, best_of = ?,
+            winner_player_id = ?, loser_player_id = ?, score = ?
+        WHERE id = ?
+        """,
+        (
+            tournament_id,
+            match_date,
+            round_,
+            best_of,
+            winner_player_id,
+            loser_player_id,
+            score,
+            match_id,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Match updated.", "success")
+    return redirect(url_for("matches_view", match_id=match_id))
+
+
+@app.route("/matches/<int:match_id>/delete", methods=["POST"])
+def matches_delete(match_id):
+    conn = get_db()
+    conn.execute("DELETE FROM matches WHERE id = ?", (match_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Match deleted.", "success")
+    return redirect(url_for("matches_list"))
+
+@app.errorhandler(404)
+def not_found(_):
+    return render_template("404.html"), 404
+
+
 if __name__ == "__main__":
     app.run(debug=True)
