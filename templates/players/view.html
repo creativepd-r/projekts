@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Player {{ player.id }} | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">{{ player.first_name }} {{ player.last_name }}</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('players_edit', player_id=player.id) }}"><button type="button">Edit</button></a>
+    <form class="inline" method="post" action="{{ url_for('players_delete', player_id=player.id) }}">
+      <button class="btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <p style="margin: 8px 0 0;"><strong>Country:</strong> {{ player.country or "" }}</p>
+    <p style="margin: 8px 0 0;"><strong>Birth year:</strong> {{ player.birth_year or "" }}</p>
+    <p style="margin: 8px 0 0;"><strong>Hand:</strong> {{ player.hand or "" }}</p>
+  </div>
+
+  <p style="margin-top: 12px;"><a href="{{ url_for('players_list') }}">Back to players</a></p>
+{% endblock %}

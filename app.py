@@ -85,9 +85,131 @@ def init_db():
     conn.commit()
     conn.close()
 
+
+def to_int(value, default=0):
+    value = (value or "").strip()
+    return int(value) if value else default
+
+
 app = Flask(__name__)
 init_db()
 
+
+@app.route("/", methods=["GET"])
+def index():
+    return redirect(url_for("players_list"))
+
+
+@app.route("/players", methods=["GET"])
+def players_list():
+    conn = get_db()
+    players = conn.execute(
+        """
+        SELECT id, first_name, last_name, country, birth_year, hand
+        FROM players
+        ORDER BY last_name, first_name, id
+        """
+    ).fetchall()
+    conn.close()
+    return render_template("players/list.html", players=players)
+
+
+@app.route("/players/new", methods=["GET"])
+def players_new():
+    return render_template("players/new.html")
+
+
+@app.route("/players", methods=["POST"])
+def players_create():
+    first_name = request.form.get("first_name", "").strip()
+    last_name = request.form.get("last_name", "").strip()
+    country = request.form.get("country", "").strip() or None
+    birth_year_raw = request.form.get("birth_year", "").strip()
+    birth_year = int(birth_year_raw) if birth_year_raw else None
+    hand = request.form.get("hand", "").strip().upper() or None
+
+    if not first_name or not last_name:
+        flash("First name and last name are required.", "error")
+        return render_template("players/new.html")
+
+    conn = get_db()
+    conn.execute(
+        """
+        INSERT INTO players (first_name, last_name, country, birth_year, hand)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (first_name, last_name, country, birth_year, hand),
+    )
+    conn.commit()
+    conn.close()
+    flash("Player created.", "success")
+    return redirect(url_for("players_list"))
+
+
+@app.route("/players/<int:player_id>", methods=["GET"])
+def players_view(player_id):
+    conn = get_db()
+    player = conn.execute(
+        """
+        SELECT id, first_name, last_name, country, birth_year, hand
+        FROM players
+        WHERE id = ?
+        """,
+        (player_id,),
+    ).fetchone()
+    conn.close()
+    return render_template("players/view.html", player=player)
+
+
+@app.route("/players/<int:player_id>/edit", methods=["GET"])
+def players_edit(player_id):
+    conn = get_db()
+    player = conn.execute(
+        """
+        SELECT id, first_name, last_name, country, birth_year, hand
+        FROM players
+        WHERE id = ?
+        """,
+        (player_id,),
+    ).fetchone()
+    conn.close()
+    return render_template("players/edit.html", player=player)
+
+
+@app.route("/players/<int:player_id>", methods=["POST"])
+def players_update(player_id):
+    first_name = request.form.get("first_name", "").strip()
+    last_name = request.form.get("last_name", "").strip()
+    country = request.form.get("country", "").strip() or None
+    birth_year_raw = request.form.get("birth_year", "").strip()
+    birth_year = int(birth_year_raw) if birth_year_raw else None
+    hand = request.form.get("hand", "").strip().upper() or None
+
+    conn = get_db()
+    conn.execute(
+        """
+        UPDATE players
+        SET first_name = ?, last_name = ?, country = ?, birth_year = ?, hand = ?
+        WHERE id = ?
+        """,
+        (first_name, last_name, country, birth_year, hand, player_id),
+    )
+    conn.commit()
+    conn.close()
+
+    flash("Player updated.", "success")
+    return redirect(url_for("players_view", player_id=player_id))
+
+
+@app.route("/players/<int:player_id>/delete", methods=["POST"])
+def players_delete(player_id):
+    conn = get_db()
+    conn.execute("DELETE FROM players WHERE id = ?", (player_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Player deleted.", "success")
+    return redirect(url_for("players_list"))
 
 
 if __name__ == "__main__":

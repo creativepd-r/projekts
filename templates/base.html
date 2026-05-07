@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Tennis Stats{% endblock %}</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
+      header { padding: 16px; border-bottom: 1px solid #4443; }
+      main { padding: 16px; max-width: 900px; margin: 0 auto; }
+      a { color: inherit; }
+      .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .spacer { flex: 1; }
+      .card { border: 1px solid #4443; border-radius: 10px; padding: 12px; }
+      .muted { opacity: 0.75; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { padding: 10px 8px; border-bottom: 1px solid #4443; text-align: left; }
+      input, select { padding: 8px; border-radius: 8px; border: 1px solid #4446; min-width: 240px; }
+      label { display: block; margin: 8px 0 4px; }
+      button { padding: 8px 12px; border-radius: 10px; border: 1px solid #4446; cursor: pointer; }
+      .btn-primary { background: #2563eb; color: white; border-color: #2563eb; }
+      .btn-danger { background: #b91c1c; color: white; border-color: #b91c1c; }
+      .flash { margin: 12px 0; padding: 10px 12px; border-radius: 10px; border: 1px solid #4443; }
+      .flash.success { border-color: #16a34a55; }
+      .flash.error { border-color: #dc262655; }
+      form.inline { display: inline; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="row" style="max-width: 900px; margin: 0 auto;">
+        <strong><a href="{{ url_for('players_list') }}" style="text-decoration:none;">Tennis Stats</a></strong>
+        <span class="spacer"></span>
+        <a href="{{ url_for('players_list') }}">Players</a>
+        <a href="{{ url_for('tournaments_list') }}">Tournaments</a>
+        <a href="{{ url_for('matches_list') }}">Matches</a>
+        <a href="{{ url_for('match_stats_list') }}">Match Stats</a>
+      </div>
+    </header>
+    <main>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

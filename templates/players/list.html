@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Players | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Players</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('players_new') }}"><button class="btn-primary" type="button">Add Player</button></a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    {% if not players %}
+      <p class="muted" style="margin: 0;">No players yet.</p>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Country</th>
+            <th>Birth Year</th>
+            <th>Hand</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in players %}
+            <tr>
+              <td><a href="{{ url_for('players_view', player_id=p.id) }}">{{ p.first_name }} {{ p.last_name }}</a></td>
+              <td>{{ p.country or "" }}</td>
+              <td>{{ p.birth_year or "" }}</td>
+              <td>{{ p.hand or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+{% endblock %}

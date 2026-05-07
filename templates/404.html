@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Not Found | Tennis Stats{% endblock %}
+
+{% block content %}
+  <h1>404</h1>
+  <p class="muted">That page does not exist.</p>
+  <p><a href="{{ url_for('players_list') }}">Go to Players</a></p>
+{% endblock %}

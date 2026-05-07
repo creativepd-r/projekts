@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Add Player | Tennis Stats{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <h1 style="margin: 0;">Add Player</h1>
+    <span class="spacer"></span>
+    <a href="{{ url_for('players_list') }}">Back</a>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <form method="post" action="{{ url_for('players_create') }}">
+      <label for="first_name">First name</label>
+      <input id="first_name" name="first_name" required value="{{ (form.first_name if form else '') }}" />
+
+      <label for="last_name">Last name</label>
+      <input id="last_name" name="last_name" required value="{{ (form.last_name if form else '') }}" />
+
+      <label for="country">Country</label>
+      <input id="country" name="country" placeholder="USA, ESP, SRB..." value="{{ (form.country if form else '') }}" />
+
+      <label for="birth_year">Birth year</label>
+      <input id="birth_year" name="birth_year" inputmode="numeric" placeholder="e.g. 1987" value="{{ (form.birth_year if form else '') }}" />
+
+      <label for="hand">Hand</label>
+      <select id="hand" name="hand">
+        {% set hv = (form.hand if form else '') %}
+        <option value="" {% if not hv %}selected{% endif %}>(unknown)</option>
+        <option value="R" {% if hv == 'R' %}selected{% endif %}>Right</option>
+        <option value="L" {% if hv == 'L' %}selected{% endif %}>Left</option>
+      </select>
+
+      <div class="row" style="margin-top: 12px;">
+        <button class="btn-primary" type="submit">Create</button>
+        <a href="{{ url_for('players_list') }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
